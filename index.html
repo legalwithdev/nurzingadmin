@@ -39,6 +39,9 @@ html[data-theme="dark"] .toolbar select{background:rgba(255,255,255,.05)}
 .btn.sm{padding:.38rem .8rem;font-size:.8rem}
 .aerr{color:#B43C3C;font-size:.86rem;min-height:1.2rem;margin:.4rem 0 0}
 .aempty{padding:28px;text-align:center;color:var(--muted);font-size:.9rem}
+.ckwrap{display:flex;flex-direction:column;gap:.28rem}
+.ck{display:flex;align-items:center;gap:.45rem;font-size:.8rem;font-weight:400;margin:0;cursor:pointer;white-space:nowrap}
+.ck input{width:15px;height:15px;accent-color:var(--teal-400);margin:0}
 .hidden{display:none!important}
 </style>
 </head>
@@ -97,8 +100,10 @@ html[data-theme="dark"] .toolbar select{background:rgba(255,255,255,.05)}
         Staff applications
       </h1>
       <p class="muted" style="max-width:42rem;margin:0 0 22px">
-        Approving creates a live professional record. Registration is marked verified only when a
-        number was supplied — the console never claims a check that was not done.
+        A profile goes live only when <strong>all five</strong> checks are ticked — documents,
+        nursing council registration, qualification, police clearance (PCC) and physical
+        verification. Untick any one and it drops back to pending. The console never claims a
+        check that was not done.
       </p>
       <div class="anote" id="storageNote" style="display:none"></div>
 
@@ -248,32 +253,60 @@ html[data-theme="dark"] .toolbar select{background:rgba(255,255,255,.05)}
     countInfo.textContent=rows.length+' application(s)';
     if(!rows.length){ out.className='aempty'; out.textContent='Nothing here yet.'; return; }
     out.className='';
-    var html='<table class="atable"><thead><tr><th>Name</th><th>Designation</th><th>Registration</th><th>City</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+    var html='<table class="atable"><thead><tr><th>Name</th><th>Designation</th><th>Registration</th>'+
+      '<th>Verification checklist</th><th>Status</th><th>Action</th></tr></thead><tbody>';
     rows.forEach(function(r){
       var cls = r.status==='verified'?'ok':(r.status==='rejected'?'bad':'wait');
-      var actions = r.status==='pending'
-        ? '<button class="btn btn-gold sm" data-act="verified" data-id="'+r.id+'">Approve</button> '+
-          '<button class="btn btn-ghost sm" data-act="rejected" data-id="'+r.id+'">Reject</button>'
-        : '<span class="muted">—</span>';
+      var CHECKS=[['docs_ok','Docs & photo'],['council_ok','Council reg.'],['education_ok','Qualification'],
+                  ['pcc_ok','Police (PCC)'],['physical_ok','Physical verification']];
+      var checksHtml = CHECKS.map(function(c){
+        var on = r[c[0]] ? ' checked' : '';
+        return '<label class="ck"><input type="checkbox" data-id="'+r.id+'" data-check="'+c[0]+'"'+on+' /> '+c[1]+'</label>';
+      }).join('');
+      var actions = r.status==='rejected'
+        ? '<button class="btn btn-ghost sm" data-restore="'+r.id+'">Restore</button>'
+        : '<button class="btn btn-ghost sm" data-reject="'+r.id+'">Reject</button>';
       html+='<tr>'+
         '<td><strong>'+esc(r.name)+'</strong><br /><span class="muted" style="font-size:.78rem">'+esc(r.phone)+'</span></td>'+
         '<td>'+esc(r.designation)+'<br /><span class="muted" style="font-size:.78rem">'+esc(r.qualification||'—')+' · '+esc(r.years)+' yrs</span></td>'+
-        '<td>'+esc(r.reg_type)+(r.reg_number?'<br /><span class="muted" style="font-size:.78rem">'+esc(r.reg_number)+'</span>':'')+'</td>'+
-        '<td>'+esc(r.city)+(r.area?'<br /><span class="muted" style="font-size:.78rem">'+esc(r.area)+'</span>':'')+'</td>'+
+        '<td>'+esc(r.reg_type)+(r.reg_number?'<br /><span class="muted" style="font-size:.78rem">'+esc(r.reg_number)+'</span>':'')+
+          '<br /><span class="muted" style="font-size:.78rem">'+esc(r.city||'')+(r.area?', '+esc(r.area):'')+'</span></td>'+
+        '<td><div class="ckwrap">'+checksHtml+'</div></td>'+
         '<td><span class="pill '+cls+'">'+esc(r.status)+'</span></td>'+
         '<td>'+actions+'</td></tr>';
     });
     html+='</tbody></table>';
     out.innerHTML=html;
 
-    out.querySelectorAll('button[data-act]').forEach(function(b){
-      b.addEventListener('click',function(){
-        b.disabled=true;
-        api({method:'PUT', body:{id:Number(b.dataset.id), status:b.dataset.act}}).then(function(res){
+    function rowChecks(id){
+      var o={};
+      out.querySelectorAll('input[data-id="'+id+'"]').forEach(function(c){ o[c.dataset.check]=c.checked; });
+      return o;
+    }
+    out.querySelectorAll('input[data-check]').forEach(function(c){
+      c.addEventListener('change',function(){
+        var id=Number(c.dataset.id);
+        api({method:'PUT', body:{id:id, checks:rowChecks(id)}}).then(function(res){
           if(res.status===401){ clearKey(); showGate('Session expired.'); return; }
-          if(!res.body || !res.body.ok){ b.disabled=false; alert('Could not update.'); return; }
+          if(!res.body || !res.body.ok){ alert('Could not save.'); return; }
           load();
-        }).catch(function(){ b.disabled=false; alert('Network error.'); });
+        }).catch(function(){ alert('Network error.'); });
+      });
+    });
+    out.querySelectorAll('button[data-reject]').forEach(function(b){
+      b.addEventListener('click',function(){
+        if(!confirm('Reject this application?')) return;
+        b.disabled=true;
+        api({method:'PUT', body:{id:Number(b.dataset.reject), action:'reject', note:'rejected by admin'}})
+          .then(function(){ load(); }).catch(function(){ b.disabled=false; alert('Network error.'); });
+      });
+    });
+    out.querySelectorAll('button[data-restore]').forEach(function(b){
+      b.addEventListener('click',function(){
+        var id=Number(b.dataset.restore);
+        b.disabled=true;
+        api({method:'PUT', body:{id:id, checks:rowChecks(id)}})
+          .then(function(){ load(); }).catch(function(){ b.disabled=false; alert('Network error.'); });
       });
     });
   }
