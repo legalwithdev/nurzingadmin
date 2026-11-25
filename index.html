@@ -283,6 +283,10 @@ html[data-theme="dark"] .toolbar select{background:rgba(255,255,255,.05)}
       actions += r.status==='rejected'
         ? '<button class="btn btn-ghost sm" data-restore="'+r.id+'">Restore</button>'
         : '<button class="btn btn-ghost sm" data-reject="'+r.id+'">Reject</button>';
+      actions += r.status==='hidden'
+        ? ' <button class="btn btn-ghost sm" data-unhide="'+r.id+'">Unhide</button>'
+        : ' <button class="btn btn-ghost sm" data-hide="'+r.id+'">Hide</button>';
+      actions += ' <button class="btn btn-ghost sm" data-del="'+r.id+'" style="color:#b04a3a;border-color:#e2b8ae">Delete</button>';
       html+='<tr>'+
         '<td><strong>'+esc(r.name)+'</strong><br /><span class="muted" style="font-size:.78rem">'+esc(r.phone)+'</span></td>'+
         '<td>'+esc(r.designation)+'<br /><span class="muted" style="font-size:.78rem">'+esc(r.qualification||'—')+' · '+esc(r.years)+' yrs</span></td>'+
@@ -310,6 +314,50 @@ html[data-theme="dark"] .toolbar select{background:rgba(255,255,255,.05)}
         }).catch(function(){ alert('Network error.'); });
       });
     });
+
+    out.querySelectorAll('button[data-hide]').forEach(function(b){
+      b.addEventListener('click',function(){
+        var id=Number(b.dataset.hide);
+        var r=(ROWS||[]).filter(function(x){return x.id===id;})[0];
+        var why = prompt('Hide ' + (r ? r.name : '#'+id) + ' from the customer app?\n\nReason (kept on the record):', 'reported profile');
+        if(why===null) return;
+        b.disabled=true;
+        api({method:'PUT', body:{id:id, action:'hide', note:why}}).then(function(res){
+          if(res.status===401){ clearKey(); showGate('Session expired.'); return; }
+          if(!res.body || !res.body.ok){ b.disabled=false; alert('Could not hide.'); return; }
+          load();
+        }).catch(function(){ b.disabled=false; alert('Network error.'); });
+      });
+    });
+
+    out.querySelectorAll('button[data-unhide]').forEach(function(b){
+      b.addEventListener('click',function(){
+        var id=Number(b.dataset.unhide);
+        if(!confirm('Unhide this profile? It returns as a digital profile, not verified.')) return;
+        b.disabled=true;
+        api({method:'PUT', body:{id:id, action:'unhide'}}).then(function(res){
+          if(res.status===401){ clearKey(); showGate('Session expired.'); return; }
+          if(!res.body || !res.body.ok){ b.disabled=false; alert('Could not unhide.'); return; }
+          load();
+        }).catch(function(){ b.disabled=false; alert('Network error.'); });
+      });
+    });
+
+    out.querySelectorAll('button[data-del]').forEach(function(b){
+      b.addEventListener('click',function(){
+        var id=Number(b.dataset.del);
+        var r=(ROWS||[]).filter(function(x){return x.id===id;})[0];
+        var label = r ? (r.name + ' (' + r.reference + ')') : ('#' + id);
+        if(!confirm('PERMANENTLY delete ' + label + '?\n\nThis cannot be undone. A receipt stays in the audit log.')) return;
+        b.disabled=true; b.textContent='Deleting...';
+        api({method:'DELETE', query:'id=' + id}).then(function(res){
+          if(res.status===401){ clearKey(); showGate('Session expired.'); return; }
+          if(!res.body || !res.body.ok){ b.disabled=false; b.textContent='Delete'; alert('Could not delete: ' + ((res.body&&res.body.error)||'unknown')); return; }
+          load();
+        }).catch(function(){ b.disabled=false; b.textContent='Delete'; alert('Network error.'); });
+      });
+    });
+
     out.querySelectorAll('button[data-view]').forEach(function(b){
       b.addEventListener('click',function(){
         var id=Number(b.dataset.view);
