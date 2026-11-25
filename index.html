@@ -124,6 +124,21 @@ html[data-theme="dark"] .toolbar select{background:rgba(255,255,255,.05)}
   </div>
 </main>
 
+<div id="detailModal" style="display:none;position:fixed;inset:0;z-index:99;background:rgba(4,26,24,.72);padding:16px;overflow:auto">
+  <div style="max-width:640px;margin:24px auto;background:var(--cream,#F7F3E8);color:var(--ink,#062A28);border-radius:16px;padding:20px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px">
+      <div>
+        <div style="font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#8a7a52;font-weight:700">Application</div>
+        <h2 id="dmName" style="font-family:Georgia,serif;font-size:1.4rem;margin:.2rem 0 0"></h2>
+        <div id="dmRef" style="font-size:.78rem;color:#6b6b5f;margin-top:2px"></div>
+      </div>
+      <button type="button" id="dmClose" style="background:none;border:1px solid #d8d0bb;border-radius:8px;font-size:1.2rem;line-height:1;padding:4px 10px;cursor:pointer">&times;</button>
+    </div>
+    <div id="dmBody"></div>
+  </div>
+</div>
+
+
 <footer>
   <div class="wrap">
     <div class="fgrid">
@@ -255,6 +270,7 @@ html[data-theme="dark"] .toolbar select{background:rgba(255,255,255,.05)}
     out.className='';
     var html='<table class="atable"><thead><tr><th>Name</th><th>Designation</th><th>Registration</th>'+
       '<th>Verification checklist</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+    ROWS = rows;
     rows.forEach(function(r){
       var cls = r.status==='verified'?'ok':(r.status==='rejected'?'bad':'wait');
       var CHECKS=[['docs_ok','Docs & photo'],['council_ok','Council reg.'],['education_ok','Qualification'],
@@ -263,7 +279,8 @@ html[data-theme="dark"] .toolbar select{background:rgba(255,255,255,.05)}
         var on = r[c[0]] ? ' checked' : '';
         return '<label class="ck"><input type="checkbox" data-id="'+r.id+'" data-check="'+c[0]+'"'+on+' /> '+c[1]+'</label>';
       }).join('');
-      var actions = r.status==='rejected'
+      var actions = '<button class="btn btn-ghost sm" data-view="'+r.id+'">View</button> ';
+      actions += r.status==='rejected'
         ? '<button class="btn btn-ghost sm" data-restore="'+r.id+'">Restore</button>'
         : '<button class="btn btn-ghost sm" data-reject="'+r.id+'">Reject</button>';
       html+='<tr>'+
@@ -293,6 +310,14 @@ html[data-theme="dark"] .toolbar select{background:rgba(255,255,255,.05)}
         }).catch(function(){ alert('Network error.'); });
       });
     });
+    out.querySelectorAll('button[data-view]').forEach(function(b){
+      b.addEventListener('click',function(){
+        var id=Number(b.dataset.view);
+        var r=(ROWS||[]).filter(function(x){return x.id===id;})[0];
+        if(r) openDetail(r);
+      });
+    });
+
     out.querySelectorAll('button[data-reject]').forEach(function(b){
       b.addEventListener('click',function(){
         if(!confirm('Reject this application?')) return;
@@ -317,6 +342,66 @@ html[data-theme="dark"] .toolbar select{background:rgba(255,255,255,.05)}
   document.getElementById('signoutLink').addEventListener('click',function(e){ e.preventDefault(); clearKey(); showGate(''); });
 
   if(key()) showConsole(); else showGate('');
+
+  var ROWS = [];
+
+  function row(label, value){
+    return '<div style="display:flex;gap:12px;padding:9px 0;border-bottom:1px solid #e4dcc8">'+
+      '<div style="flex:0 0 132px;font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:#8a7a52;font-weight:700">'+label+'</div>'+
+      '<div style="flex:1;font-size:.92rem;word-break:break-word">'+(value||'<span style="color:#9a9689">- not given -</span>')+'</div></div>';
+  }
+
+  function openDetail(r){
+    document.getElementById('dmName').textContent = r.name || '-';
+    document.getElementById('dmRef').textContent  = r.reference ? ('Reference ' + r.reference) : '';
+
+    var care = '';
+    try { var a = JSON.parse(r.care_types || '[]'); if (a.length) care = esc(a.join(', ')); } catch(e){}
+
+    var CHECKS = [['docs_ok','Documents & photo received'],['council_ok','Nursing council registration checked'],
+                  ['education_ok','Qualification certificates checked'],['pcc_ok','Police clearance (PCC)'],
+                  ['physical_ok','Physical verification done']];
+    var checks = CHECKS.map(function(c){
+      return '<div style="display:flex;gap:8px;padding:5px 0;font-size:.9rem">'+
+        '<span style="color:'+(r[c[0]]?'#1d7a4f':'#b04a3a')+';font-weight:700">'+(r[c[0]]?'YES':'NO')+'</span>'+
+        '<span>'+c[1]+'</span></div>';
+    }).join('');
+
+    var phone = r.phone ? '<a href="tel:'+esc(r.phone)+'" style="color:#1a6b62">'+esc(r.phone)+'</a>' : '';
+
+    document.getElementById('dmBody').innerHTML =
+      row('Mobile', phone) +
+      row('Designation', esc(r.designation)) +
+      row('Qualification', esc(r.qualification)) +
+      row('Registration', esc(r.reg_type) + (r.reg_number ? ' / ' + esc(r.reg_number) : '')) +
+      row('Experience', (r.years ? esc(r.years) + ' years' : '')) +
+      row('City / Area', esc([r.city, r.area].filter(Boolean).join(', '))) +
+      row('Care types', care) +
+      row('Their notes', esc(r.notes)) +
+      row('Submitted', esc(r.created_at)) +
+      row('Status', '<strong>'+esc(r.status)+'</strong>') +
+      '<div style="margin-top:14px;padding:12px;background:#fff;border-radius:10px">'+
+        '<div style="font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:#8a7a52;font-weight:700;margin-bottom:6px">Verification</div>'+
+        checks+
+      '</div>' +
+      '<p style="font-size:.76rem;color:#8a7a52;margin:12px 0 0">'+
+        'Documents are checked offline and in person - this console records the outcome only. '+
+        'Tick a check only when you have actually done it.</p>';
+
+    document.getElementById('detailModal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  }
+
+  (function(){
+    var m = document.getElementById('detailModal');
+    document.getElementById('dmClose').addEventListener('click', function(){
+      m.style.display='none'; document.body.style.overflow='';
+    });
+    m.addEventListener('click', function(e){
+      if(e.target===m){ m.style.display='none'; document.body.style.overflow=''; }
+    });
+  })();
+
 })();
 </script>
 </body>
