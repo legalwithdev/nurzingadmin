@@ -1,191 +1,290 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#062A28" />
-  <title>NURZING Admin - Bureau Operations & Approval Console</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg: #f5f8f7; --surface: #ffffff; --surface-soft: #eef4f3;
-      --ink: #062a28; --ink-muted: #4b6361; --border: rgba(6, 42, 40, 0.12);
-      --forest: #062a28; --mint: #0f766e; --mint-light: #e6f4f1;
-      --amber: #b45309; --amber-bg: #fef3c7; --danger: #b91c1c; --danger-bg: #fee2e2;
-      --radius: 18px; --shadow: 0 10px 28px rgba(6, 42, 40, 0.06);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { max-width: 100%; overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
-    body { font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.58; padding-bottom: 72px; }
-    h1, h2, .brand-title { font-family: "Fraunces", Georgia, serif; letter-spacing: -0.02em; }
-    .topbar { background: var(--forest); color: #ffffff; padding: 18px 16px 22px; }
-    .wrap { max-width: 840px; margin: 0 auto; }
-    .topbar-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
-    .brand-title { font-size: 1.25rem; font-weight: 600; }
-    .pill-top { font-size: 0.75rem; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.12); color: #d1fae5; }
-    .hero-copy h1 { font-size: 1.55rem; font-weight: 500; margin-bottom: 6px; color: #fff; }
-    .hero-copy p { font-size: 0.92rem; color: rgba(255,255,255,0.82); }
-    .tabs { position: sticky; top: 0; z-index: 20; background: rgba(245,248,247,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 10px 16px; }
-    .tab-bar { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
-    .tab-bar::-webkit-scrollbar { display: none; }
-    .tab-btn { flex: 0 0 auto; border: 1px solid var(--border); background: var(--surface); color: var(--ink); padding: 8px 15px; border-radius: 999px; font-family: "Inter", sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
-    .tab-btn.active { background: var(--forest); color: #fff; border-color: var(--forest); }
-    .main-area { padding: 18px 16px 0; }
-    .view-panel { display: none; }
-    .view-panel.active { display: block; }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-bottom: 16px; }
-    .card h2 { font-size: 1.2rem; font-weight: 600; margin-bottom: 4px; color: var(--forest); }
-    .card-sub { font-size: 0.88rem; color: var(--ink-muted); margin-bottom: 16px; }
-    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
-    @media (min-width: 640px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
-    .stat-box { background: var(--surface-soft); border: 1px solid var(--border); border-radius: 14px; padding: 12px; }
-    .stat-label { font-size: 0.76rem; color: var(--ink-muted); font-weight: 600; }
-    .stat-val { font-size: 1.25rem; font-weight: 700; color: var(--forest); margin-top: 2px; }
-    .grid-2 { display: grid; grid-template-columns: 1fr; gap: 12px; }
-    @media (min-width: 640px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
-    label.field { display: flex; flex-direction: column; gap: 6px; font-size: 0.84rem; font-weight: 600; color: var(--ink); }
-    input, select, textarea { width: 100%; border: 1px solid rgba(6,42,40,0.2); background: var(--surface); color: var(--ink); border-radius: 12px; padding: 11px 13px; font-family: "Inter", sans-serif; font-size: 16px; outline: none; }
-    textarea { min-height: 78px; resize: vertical; }
-    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
-    .btn { border: none; border-radius: 12px; padding: 10px 15px; font-family: "Inter", sans-serif; font-size: 0.86rem; font-weight: 600; cursor: pointer; }
-    .btn-primary { background: var(--forest); color: #fff; }
-    .btn-mint { background: var(--mint); color: #fff; }
-    .btn-soft { background: var(--surface-soft); color: var(--ink); border: 1px solid var(--border); }
-    .btn-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid rgba(185,28,28,0.25); }
-    .item-box { background: var(--surface-soft); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-top: 12px; font-size: 0.87rem; overflow-wrap: anywhere; }
-    .badge-status { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; background: var(--amber-bg); color: var(--amber); }
-    .badge-status.ok { background: var(--mint-light); color: var(--mint); }
-    .badge-status.bad { background: var(--danger-bg); color: var(--danger); }
-    .out-box { margin-top: 12px; background: var(--surface-soft); border: 1px solid rgba(15,118,110,0.25); border-radius: 14px; padding: 14px; font-size: 0.85rem; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); }
-    .toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: var(--forest); color: #fff; padding: 10px 18px; border-radius: 999px; font-size: 0.85rem; font-weight: 600; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 99; }
-    .toast.show { opacity: 1; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062A28" />
+<meta name="robots" content="noindex, nofollow" />
+<script>(function(){try{var t=localStorage.getItem('nz-theme')||'auto';
+var d=(t==='dark')||(t!=='light'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);
+document.documentElement.setAttribute('data-theme',d?'dark':'light');
+var m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',d?'#081918':'#062A28');}catch(e){}})();</script>
+<title>NURZING Admin — Operations Console</title>
+<link rel="icon" href="https://nurzing.pages.dev/favicon.svg" />
+<link rel="apple-touch-icon" href="https://nurzing.pages.dev/icons/apple-touch-icon-180.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://nurzing.pages.dev/assets/site.css" />
+<style>
+main#top{padding-top:104px;padding-bottom:70px}
+@media(max-width:700px){main#top{padding-top:96px}}
+.acard{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow)}
+html[data-theme="dark"] .acard{background:rgba(255,255,255,.03)}
+.gate{max-width:430px;margin:6vh auto}
+.anote{background:var(--cream-2);border-left:3px solid var(--gold-500);border-radius:10px;padding:12px 15px;font-size:.84rem;color:var(--muted);margin:0 0 18px;line-height:1.5}
+html[data-theme="dark"] .anote{background:rgba(235,214,155,.07)}
+.atable{width:100%;border-collapse:collapse;background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+html[data-theme="dark"] .atable{background:rgba(255,255,255,.02)}
+.atable th,.atable td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);font-size:.85rem;vertical-align:top}
+.atable th{background:var(--cream-2);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;font-weight:700}
+html[data-theme="dark"] .atable th{background:rgba(235,214,155,.08)}
+.atable tr:last-child td{border-bottom:0}
+.pill.ok{background:rgba(46,138,126,.18);color:#0E524C}
+.pill.bad{background:rgba(180,60,60,.15);color:#8A2B2B}
+.pill.wait{background:rgba(198,156,66,.22);color:#7A5A12}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 16px}
+.toolbar select{padding:.55rem .8rem;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font:inherit;font-size:.86rem}
+html[data-theme="dark"] .toolbar select{background:rgba(255,255,255,.05)}
+.btn.sm{padding:.38rem .8rem;font-size:.8rem}
+.aerr{color:#B43C3C;font-size:.86rem;min-height:1.2rem;margin:.4rem 0 0}
+.aempty{padding:28px;text-align:center;color:var(--muted);font-size:.9rem}
+.hidden{display:none!important}
+</style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="wrap">
-      <div class="topbar-row">
-        <div class="brand-title">NURZING <span>- Admin Console</span></div>
-        <div class="pill-top" id="adminSyncBadge">Sync: Local + Cloud Ready</div>
-      </div>
-      <div class="hero-copy">
-        <h1>Staff Approvals, Duty Dispatch & Incident Control</h1>
-        <p>Review NurzingStaff onboarding requests, generate breach/blacklist circulars, create client duty & WhatsApp consent notes, and log Doc 5B incidents.</p>
-      </div>
-    </div>
-  </header>
-  <div class="tabs">
-    <div class="wrap tab-bar">
-      <button type="button" class="tab-btn active" onclick="switchTab('approvals', this)">Staff Queue</button>
-      <button type="button" class="tab-btn" onclick="switchTab('dispatch', this)">Duty & Consent</button>
-      <button type="button" class="tab-btn" onclick="switchTab('incidents', this)">Doc 5B Logs</button>
-      <button type="button" class="tab-btn" onclick="switchTab('cloud', this)">Cloud Sync</button>
+
+<header id="hdr">
+  <div class="wrap nav">
+    <a href="https://nurzing.pages.dev/" class="brand" aria-label="NURZING home">
+      <svg class="mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+        <circle cx="20" cy="20" r="18.2" stroke="#C69C42" stroke-width="1.4"/>
+        <circle cx="20" cy="20" r="12" stroke="#0E524C" stroke-width="1"/>
+        <path d="M14 27V13l12 14V13" stroke="#073331" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      NURZING <span style="font-family:var(--sans);font-size:.62rem;letter-spacing:.18em;color:var(--gold-500);margin-left:.4rem">ADMIN</span>
+    </a>
+    <nav class="nav-links">
+      <a href="https://nurzing.pages.dev/">Customer site</a>
+      <a href="https://nurzingstaff.pages.dev/">Staff portal</a>
+    </nav>
+    <div class="nav-cta">
+      <button class="theme-btn" id="themeBtn" data-state="auto" type="button" aria-label="Switch theme" title="Theme: Auto">
+        <svg class="ti ti-auto" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.2" stroke="currentColor" stroke-width="1.6"/><path d="M12 3.8v16.4" stroke="currentColor" stroke-width="1.6"/><path d="M12 3.8a8.2 8.2 0 0 1 0 16.4" fill="currentColor"/></svg>
+        <svg class="ti ti-light" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.7"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <svg class="ti ti-dark" viewBox="0 0 24 24" fill="none"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a7 7 0 1 0 10.5 10.5Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="btn btn-ghost hidden" id="logoutBtn" type="button" style="padding:.55rem 1rem;font-size:.85rem">Sign out</button>
     </div>
   </div>
-  <main class="wrap main-area">
-    <div class="stats-grid">
-      <div class="stat-box"><div class="stat-label">Staff Requests</div><div class="stat-val" id="cntStaff">0</div></div>
-      <div class="stat-box"><div class="stat-label">Approved Active</div><div class="stat-val" id="cntApproved">0</div></div>
-      <div class="stat-box"><div class="stat-label">Duty Dispatches</div><div class="stat-val" id="cntDispatch">0</div></div>
-      <div class="stat-box"><div class="stat-label">Doc 5B Logs</div><div class="stat-val" id="cntIncident">0</div></div>
-    </div>
-    <div id="tab-approvals" class="view-panel active">
-      <div class="card">
-        <h2>Staff Onboarding Queue & Circulars</h2>
-        <p class="card-sub">Paste NURZING_STAFF_PACKET::... from NurzingStaff or pull directly from Firebase.</p>
-        <label class="field">Import Staff Packet / JSON<textarea id="packetInput" placeholder="Paste NURZING_STAFF_PACKET::... here"></textarea></label>
-        <div class="actions">
-          <button type="button" class="btn btn-mint" onclick="importPacket()">Import Request</button>
-          <button type="button" class="btn btn-primary" onclick="pullFromCloud()">Pull From Firebase</button>
-          <button type="button" class="btn btn-soft" onclick="addDemoStaff()">Add Sample Staff</button>
+</header>
+
+<main id="top">
+  <div class="wrap">
+
+    <!-- ============ LOGIN GATE ============ -->
+    <div id="gate" class="acard gate">
+      <span class="eyebrow">Restricted</span>
+      <h1 style="font-family:var(--serif);font-size:1.7rem;margin:.5rem 0 .5rem">Admin sign-in</h1>
+      <p class="muted" style="margin-top:0;font-size:.9rem">Enter the admin key. It is checked by the
+        server on every request — this page stores nothing on its own.</p>
+      <form id="gateForm">
+        <div class="field">
+          <label for="key">Admin key</label>
+          <input id="key" type="password" autocomplete="off" placeholder="••••••••" />
         </div>
-        <div id="staffQueue"></div>
-        <div id="circularBox" class="out-box" style="display:none;"></div>
-        <div class="actions" id="circularActions" style="display:none;"><button type="button" class="btn btn-soft" onclick="copyBox('circularBox')">Copy Circular</button></div>
+        <button class="btn btn-gold" type="submit" style="width:100%;justify-content:center">
+          Unlock <span class="arrow">&rarr;</span>
+        </button>
+        <p class="aerr" id="gateErr"></p>
+      </form>
+    </div>
+
+    <!-- ============ CONSOLE ============ -->
+    <div id="console" class="hidden">
+      <span class="eyebrow">NURZING Admin</span>
+      <h1 style="font-family:var(--serif);font-size:2rem;line-height:1.2;margin:.5rem 0 .6rem">
+        Staff applications
+      </h1>
+      <p class="muted" style="max-width:42rem;margin:0 0 22px">
+        Approving creates a live professional record. Registration is marked verified only when a
+        number was supplied — the console never claims a check that was not done.
+      </p>
+      <div class="anote" id="storageNote" style="display:none"></div>
+
+      <div class="toolbar">
+        <select id="filter">
+          <option value="">All statuses</option>
+          <option value="pending">Pending</option>
+          <option value="verified">Verified</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <button class="btn btn-ghost sm" id="refreshBtn" type="button">Refresh</button>
+        <span class="muted" id="countInfo" style="font-size:.82rem"></span>
+      </div>
+
+      <div id="out" class="aempty">Loading…</div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <div class="fbrand">
+        <span class="brand">
+          <svg class="mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+            <circle cx="20" cy="20" r="18.2" stroke="#C69C42" stroke-width="1.4"/>
+            <path d="M14 27V13l12 14V13" stroke="#EBD69B" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          NURZING
+        </span>
+        <p>A new-age nursing bureau connecting families with nurses and healthcare attendants — transparently, and on demand.</p>
+      </div>
+      <div class="fcol">
+        <h4>Ecosystem</h4>
+        <a href="https://nurzing.pages.dev/">Customer site</a>
+        <a href="https://nurzingstaff.pages.dev/">Staff portal</a>
+      </div>
+      <div class="fcol">
+        <h4>Access</h4>
+        <a href="#" id="signoutLink">Sign out</a>
       </div>
     </div>
-    <div id="tab-dispatch" class="view-panel">
-      <div class="card">
-        <h2>Duty Dispatch & WhatsApp Consent Generator</h2>
-        <p class="card-sub">Create duty assignments and copy clean WhatsApp consent notes for clients.</p>
-        <div class="grid-2">
-          <label class="field">Duty ID<input type="text" id="dId" value="NRZ-BND-001" /></label>
-          <label class="field">Client Name & Phone<input type="text" id="dClient" placeholder="e.g., Rajesh Tiwari / 98XXXXXXXX" /></label>
-          <label class="field">Assigned Staff & ID<input type="text" id="dStaff" placeholder="Approved staff name & ID" /></label>
-          <label class="field">Scope<select id="dScope"><option value="Non-Clinical Attendant / Caregiver">Non-Clinical Attendant / Caregiver</option><option value="Registered Nurse Care (Rx Required)">Registered Nurse Care (Rx Required)</option></select></label>
-          <label class="field">Shift & Timing<input type="text" id="dTiming" value="12-Hr Shift / Starts Tomorrow" /></label>
-          <label class="field">Fee Payable to Nurzing<input type="text" id="dFee" placeholder="e.g., Rs 800 / shift" /></label>
-        </div>
-        <label class="field" style="margin-top:12px;">Pre-Duty Notes (Valuables / Rx / Family Dispute Rule)<textarea id="dNotes" placeholder="No backdoor fee setting, no clinical pressure on non-clinical attendant, follow written Rx only..."></textarea></label>
-        <div class="actions"><button type="button" class="btn btn-mint" onclick="createDispatch()">Save & Generate WhatsApp Note</button><button type="button" class="btn btn-soft" onclick="copyBox('dWaOut')">Copy Note</button></div>
-        <div id="dWaOut" class="out-box">WhatsApp consent note will appear here.</div>
-        <div id="dispatchList"></div>
-      </div>
+    <div class="fbottom">
+      <span>© <span id="yr"></span> NURZING — nursing bureau and placement service</span>
     </div>
-    <div id="tab-incidents" class="view-panel">
-      <div class="card">
-        <h2>Incident, Rx Back-Off & Breach Log (Doc 5B)</h2>
-        <p class="card-sub">Record prescription back-offs, backdoor setting/poaching, safety alerts, theft, or IP/data issues.</p>
-        <div class="grid-2">
-          <label class="field">Category<select id="iCat"><option value="Wrong/Unclear Rx Safe Back-Off">Wrong/Unclear Rx Safe Back-Off</option><option value="Backdoor Setting / Client Poaching">Backdoor Setting / Client Poaching</option><option value="Female / Staff Safety Alert (112/Police)">Female / Staff Safety Alert (112/Police)</option><option value="Theft / Data or IP Breach / False Claim">Theft / Data or IP Breach / False Claim</option><option value="Discrimination / Pass-the-Ball Issue">Discrimination / Pass-the-Ball Issue</option></select></label>
-          <label class="field">Related Duty / Staff ID<input type="text" id="iRef" placeholder="e.g., NRZ-BND-001 / STF-123456" /></label>
-        </div>
-        <label class="field" style="margin-top:12px;">Facts & Action Taken<textarea id="iFacts" placeholder="Record facts, evidence, replacement/stop action, or legal/police step..."></textarea></label>
-        <div class="actions"><button type="button" class="btn btn-primary" onclick="addIncident()">Log Incident</button></div>
-        <div id="incidentList"></div>
-      </div>
-    </div>
-    <div id="tab-cloud" class="view-panel">
-      <div class="card">
-        <h2>Firebase Sync & State Backup</h2>
-        <label class="field">Free Firebase Realtime Database URL<input type="url" id="aFbUrl" placeholder="https://your-project-default-rtdb.firebaseio.com" /></label>
-        <div class="actions"><button type="button" class="btn btn-mint" onclick="saveAdminCloud()">Save URL</button><button type="button" class="btn btn-soft" onclick="copyBox('jsonDump')">Copy JSON Backup</button><button type="button" class="btn btn-danger" onclick="resetAdminData()">Reset Admin Data</button></div>
-        <div id="jsonDump" class="out-box">{}</div>
-      </div>
-    </div>
-  </main>
-  <div id="toast" class="toast">Saved</div>
-  <script>
-    const AKEY = 'nurzing_admin_v2';
-    function loadAdmin() { try { return JSON.parse(localStorage.getItem(AKEY)) || { staff: [], dispatches: [], incidents: [], fbUrl: '' }; } catch { return { staff: [], dispatches: [], incidents: [], fbUrl: '' }; } }
-    function saveAdmin(s) { localStorage.setItem(AKEY, JSON.stringify(s)); document.getElementById('jsonDump').textContent = JSON.stringify(s, null, 2); }
-    function switchTab(name, btn) { document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('tab-' + name).classList.add('active'); if (btn) btn.classList.add('active'); window.scrollTo({ top: 0, behavior: 'instant' }); }
-    function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2100); }
-    function copyBox(id) { const txt = document.getElementById(id).textContent.trim(); if (!txt) return; if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(() => showToast('Copied')); else { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast('Copied'); } }
-    async function pushStaffCloud(s, m) { if (!s.fbUrl || !m) return; const base = s.fbUrl.replace(/\/+$/, ''); try { await fetch(`${base}/staffRequests/${m.id}.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(m) }); document.getElementById('adminSyncBadge').textContent = 'Sync: Firebase Live'; } catch {} }
-    async function pullFromCloud() { const s = loadAdmin(); if (!s.fbUrl) { showToast('Save Firebase URL first'); return; } const base = s.fbUrl.replace(/\/+$/, ''); try { const r = await fetch(`${base}/staffRequests.json`); if (r.ok) { const d = await r.json(); if (d && typeof d === 'object') { Object.values(d).filter(Boolean).forEach(item => { const idx = s.staff.findIndex(x => x.id === item.id); if (idx >= 0) s.staff[idx] = { ...s.staff[idx], ...item }; else s.staff.unshift(item); }); saveAdmin(s); renderAdmin(); showToast('Pulled from Firebase'); } } } catch { showToast('Pull failed'); } }
-    function addDemoStaff() { const s = loadAdmin(); const id = 'STF-' + Date.now().toString().slice(-6); s.staff.unshift({ id, fullName: 'Anjali Sharma', guardianName: 'Ramesh Sharma', phone: '9800000000', city: 'Banda, UP', role: 'Non-Clinical Attendant / Caregiver', govtId: 'Aadhaar XXXX-5910', regNo: 'Non-Clinical Attendant', payoutInfo: 'anjali@upi', address: 'Civil Lines, Banda, Uttar Pradesh', status: 'Pending Admin Approval', adminNote: '', submittedAt: new Date().toLocaleString('en-IN') }); saveAdmin(s); renderAdmin(); showToast('Sample staff added'); }
-    function importPacket() { const raw = document.getElementById('packetInput').value.trim(); if (!raw) { showToast('Paste packet first'); return; } const clean = raw.startsWith('NURZING_STAFF_PACKET::') ? raw.replace('NURZING_STAFF_PACKET::', '') : raw; try { const parsed = JSON.parse(clean); const list = Array.isArray(parsed) ? parsed : (parsed.profile ? [parsed.profile] : [parsed]); const s = loadAdmin(); list.forEach(p => { if (!p || !p.id) return; const idx = s.staff.findIndex(x => x.id === p.id); if (idx >= 0) s.staff[idx] = { ...s.staff[idx], ...p }; else s.staff.unshift(p); }); saveAdmin(s); document.getElementById('packetInput').value = ''; renderAdmin(); showToast('Imported'); } catch { showToast('Invalid packet JSON'); } }
-    async function setStaffStatus(id, status) {
-      const s = loadAdmin(); const m = s.staff.find(x => x.id === id); if (!m) return;
-      const note = prompt(`Admin note for ${m.fullName} (${status}):`, m.adminNote || '') ?? m.adminNote ?? '';
-      m.status = status; m.adminNote = note; saveAdmin(s); await pushStaffCloud(s, m);
-      if (status.toLowerCase().includes('blacklist')) { const cb = document.getElementById('circularBox'); const ca = document.getElementById('circularActions'); cb.style.display = 'block'; ca.style.display = 'flex'; cb.textContent = `[NURZING INTERNAL / LEGAL BREACH & BLACKLIST CIRCULAR]\nProvider: ${m.fullName} | ID: ${m.id} | Role: ${m.role}\nCity: ${m.city} | ID Ref: ${m.govtId} | Reg: ${m.regNo}\nAction: PERMANENT BLACKLIST / REMOVAL (Doc 2 Breach)\nRemarks: ${note || 'Breach of backdoor/poaching, confidentiality, safety, or empanelment terms.'}`; }
-      renderAdmin(); showToast('Updated: ' + status);
-    }
-    function createDispatch() {
-      const s = loadAdmin();
-      const entry = { id: document.getElementById('dId').value.trim() || ('NRZ-' + Date.now().toString().slice(-5)), client: document.getElementById('dClient').value.trim() || '[Client]', staff: document.getElementById('dStaff').value.trim() || '[Assigned Staff]', scope: document.getElementById('dScope').value, timing: document.getElementById('dTiming').value.trim() || '[Timing]', fee: document.getElementById('dFee').value.trim() || '[Fee]', notes: document.getElementById('dNotes').value.trim() || 'Standard coordination & safety rules apply', at: new Date().toLocaleString('en-IN') };
-      s.dispatches.unshift(entry); saveAdmin(s);
-      document.getElementById('dWaOut').textContent = `*NURZING (nurzing.pages.dev) - Service & Coordination Consent Note*\n- Duty ID: ${entry.id} | Client: ${entry.client}\n- Assigned: ${entry.staff} | Scope: ${entry.scope}\n- Shift: ${entry.timing} | Fee Payable to Nurzing: ${entry.fee}\n- Key Terms:\n  1. Nurzing is a care coordination platform, not a hospital or clinical operator.\n  2. Non-clinical attendants do not perform clinical tasks; registered nurses follow valid scope & written Rx only.\n  3. Zero tolerance for backdoor/unofficial fee setting, theft, discrimination, or abuse/threat against staff.\n  4. In medical emergency, call 112 / 108 or go to nearest hospital immediately.\n- Notes: ${entry.notes}\n- Reply "I AGREE / MAIN SAHMAT HOON" to confirm.`;
-      renderAdmin(); showToast('Dispatch saved');
-    }
-    function addIncident() { const s = loadAdmin(); const facts = document.getElementById('iFacts').value.trim(); if (!facts) { showToast('Enter facts first'); return; } s.incidents.unshift({ id: 'INC-' + Date.now().toString().slice(-5), cat: document.getElementById('iCat').value, ref: document.getElementById('iRef').value.trim() || 'N/A', facts, at: new Date().toLocaleString('en-IN') }); saveAdmin(s); document.getElementById('iFacts').value = ''; renderAdmin(); showToast('Incident logged'); }
-    function saveAdminCloud() { const s = loadAdmin(); s.fbUrl = document.getElementById('aFbUrl').value.trim(); saveAdmin(s); if (s.fbUrl) document.getElementById('adminSyncBadge').textContent = 'Sync: Firebase Ready'; showToast('Firebase URL saved'); }
-    function resetAdminData() { localStorage.removeItem(AKEY); renderAdmin(); showToast('Admin data reset'); }
-    function renderAdmin() {
-      const s = loadAdmin(); document.getElementById('aFbUrl').value = s.fbUrl || ''; document.getElementById('jsonDump').textContent = JSON.stringify(s, null, 2);
-      document.getElementById('cntStaff').textContent = s.staff.length; document.getElementById('cntApproved').textContent = s.staff.filter(m => (m.status || '').toLowerCase().includes('approved')).length;
-      document.getElementById('cntDispatch').textContent = s.dispatches.length; document.getElementById('cntIncident').textContent = s.incidents.length;
-      const q = document.getElementById('staffQueue');
-      if (!s.staff.length) q.innerHTML = '<div class="item-box" style="color:#4b6361;">No staff requests imported yet.</div>';
-      else q.innerHTML = s.staff.map(m => { const st = (m.status || '').toLowerCase(); const cls = st.includes('approved') ? 'ok' : (st.includes('blacklist') ? 'bad' : ''); return `<div class="item-box"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;"><strong>${m.fullName} (${m.id})</strong><span class="badge-status ${cls}">${m.status || 'Pending'}</span></div><div style="margin-top:6px;">Role: ${m.role} / City: ${m.city} / Phone: ${m.phone}</div><div style="color:#4b6361;">ID: ${m.govtId} / Reg: ${m.regNo} / Payout: ${m.payoutInfo}</div><div style="color:#4b6361;">Address: ${m.address}</div>${m.adminNote ? `<div style="margin-top:4px;color:#0f766e;"><strong>Note:</strong> ${m.adminNote}</div>` : ''}<div class="actions"><button type="button" class="btn btn-mint" onclick="setStaffStatus('${m.id}', 'Approved & Active')">Approve</button><button type="button" class="btn btn-soft" onclick="setStaffStatus('${m.id}', 'On Hold / Re-verify')">Hold</button><button type="button" class="btn btn-danger" onclick="setStaffStatus('${m.id}', 'Blacklisted (Breach)')">Blacklist + Circular</button></div></div>`; }).join('');
-      document.getElementById('dispatchList').innerHTML = s.dispatches.map(d => `<div class="item-box"><strong>Duty ${d.id}</strong> - ${d.client} -> <em>${d.staff}</em><br/><span style="color:#4b6361;">${d.scope} / ${d.timing} / Fee: ${d.fee} (${d.at})</span></div>`).join('');
-      document.getElementById('incidentList').innerHTML = s.incidents.map(i => `<div class="item-box"><strong>[${i.id}] ${i.cat}</strong> - Ref: ${i.ref} <span style="color:#4b6361;">(${i.at})</span><br/><span>${i.facts}</span></div>`).join('');
-    }
-    renderAdmin();
-  </script>
+  </div>
+</footer>
+
+<script>
+/* ---------- theme (manual) — same behaviour as the customer site ---------- */
+(function(){
+  var KEY='nz-theme';
+  var mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
+  function stored(){ try{return localStorage.getItem(KEY)||'auto';}catch(e){return 'auto';} }
+  function apply(t){
+    var d = t==='dark' || (t!=='light' && mq && mq.matches);
+    document.documentElement.setAttribute('data-theme', d?'dark':'light');
+    var m=document.querySelector('meta[name=theme-color]'); if(m) m.setAttribute('content', d?'#081918':'#062A28');
+    var tb=document.getElementById('themeBtn');
+    if(tb){ tb.setAttribute('data-state',t); tb.setAttribute('title','Theme: '+t); tb.setAttribute('aria-label','Theme: '+t); }
+  }
+  function set(t){ try{localStorage.setItem(KEY,t);}catch(e){} apply(t); }
+  var CYCLE=['auto','light','dark'];
+  var tb=document.getElementById('themeBtn');
+  if(tb) tb.addEventListener('click',function(){ var i=CYCLE.indexOf(stored()); set(CYCLE[(i+1)%3]); });
+  if(mq && mq.addEventListener) mq.addEventListener('change',function(){ if(stored()==='auto') apply('auto'); });
+  apply(stored());
+})();
+
+(function(){
+  var API='https://nurzing.pages.dev/api/applications';
+  var KEY_STORE='nz-admin-key';
+  var gate=document.getElementById('gate');
+  var con=document.getElementById('console');
+  var out=document.getElementById('out');
+  var gateErr=document.getElementById('gateErr');
+  var countInfo=document.getElementById('countInfo');
+  var filterEl=document.getElementById('filter');
+  var storageNote=document.getElementById('storageNote');
+  var logoutBtn=document.getElementById('logoutBtn');
+
+  document.getElementById('yr').textContent=new Date().getFullYear();
+  var hdr=document.getElementById('hdr');
+  if(hdr) addEventListener('scroll',function(){ hdr.classList.toggle('scrolled', scrollY>40); });
+
+  function key(){ try{ return sessionStorage.getItem(KEY_STORE)||''; }catch(e){ return ''; } }
+  function setKey(v){ try{ sessionStorage.setItem(KEY_STORE,v); }catch(e){} }
+  function clearKey(){ try{ sessionStorage.removeItem(KEY_STORE); }catch(e){} }
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+  function api(opts){
+    opts=opts||{};
+    var url=API+'?key='+encodeURIComponent(key())+(opts.query?'&'+opts.query:'');
+    return fetch(url,{
+      method:opts.method||'GET',
+      headers:opts.body?{'content-type':'application/json'}:undefined,
+      body:opts.body?JSON.stringify(opts.body):undefined
+    }).then(function(r){ return r.json().then(function(j){ return {status:r.status, body:j}; }); });
+  }
+
+  function showConsole(){
+    gate.classList.add('hidden'); con.classList.remove('hidden');
+    logoutBtn.classList.remove('hidden'); load();
+  }
+  function showGate(msg){
+    gate.classList.remove('hidden'); con.classList.add('hidden');
+    logoutBtn.classList.add('hidden'); gateErr.textContent=msg||'';
+  }
+
+  document.getElementById('gateForm').addEventListener('submit',function(e){
+    e.preventDefault();
+    var v=document.getElementById('key').value.trim();
+    if(!v){ gateErr.textContent='Please enter the admin key.'; return; }
+    gateErr.textContent=''; setKey(v);
+    api({}).then(function(res){
+      if(res.status===401){ clearKey(); showGate('Wrong admin key.'); return; }
+      if(res.status===503){ showConsole(); return; }
+      if(!res.body || !res.body.ok){ showGate((res.body&&res.body.error)||'Could not load.'); return; }
+      showConsole();
+    }).catch(function(){ clearKey(); showGate('Could not reach the server.'); });
+  });
+
+  function load(){
+    out.className='aempty'; out.textContent='Loading…';
+    var q=filterEl.value?'status='+encodeURIComponent(filterEl.value):'';
+    api({query:q}).then(function(res){
+      if(res.status===401){ clearKey(); showGate('Session expired — enter the key again.'); return; }
+      if(res.status===503){
+        storageNote.style.display='';
+        storageNote.textContent='Storage is not configured yet. Create the D1 database and bind it as DB in the Pages dashboard — applications will appear here after that.';
+        out.className='aempty'; out.textContent='No storage yet.'; countInfo.textContent=''; return;
+      }
+      if(!res.body || !res.body.ok){
+        out.className='aempty';
+        out.textContent=(res.body&&res.body.error)?res.body.error:'Could not load.';
+        return;
+      }
+      storageNote.style.display='none';
+      render(res.body.applications||[]);
+    }).catch(function(){ out.className='aempty'; out.textContent='Could not reach the server.'; });
+  }
+
+  function render(rows){
+    countInfo.textContent=rows.length+' application(s)';
+    if(!rows.length){ out.className='aempty'; out.textContent='Nothing here yet.'; return; }
+    out.className='';
+    var html='<table class="atable"><thead><tr><th>Name</th><th>Designation</th><th>Registration</th><th>City</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+    rows.forEach(function(r){
+      var cls = r.status==='verified'?'ok':(r.status==='rejected'?'bad':'wait');
+      var actions = r.status==='pending'
+        ? '<button class="btn btn-gold sm" data-act="verified" data-id="'+r.id+'">Approve</button> '+
+          '<button class="btn btn-ghost sm" data-act="rejected" data-id="'+r.id+'">Reject</button>'
+        : '<span class="muted">—</span>';
+      html+='<tr>'+
+        '<td><strong>'+esc(r.name)+'</strong><br /><span class="muted" style="font-size:.78rem">'+esc(r.phone)+'</span></td>'+
+        '<td>'+esc(r.designation)+'<br /><span class="muted" style="font-size:.78rem">'+esc(r.qualification||'—')+' · '+esc(r.years)+' yrs</span></td>'+
+        '<td>'+esc(r.reg_type)+(r.reg_number?'<br /><span class="muted" style="font-size:.78rem">'+esc(r.reg_number)+'</span>':'')+'</td>'+
+        '<td>'+esc(r.city)+(r.area?'<br /><span class="muted" style="font-size:.78rem">'+esc(r.area)+'</span>':'')+'</td>'+
+        '<td><span class="pill '+cls+'">'+esc(r.status)+'</span></td>'+
+        '<td>'+actions+'</td></tr>';
+    });
+    html+='</tbody></table>';
+    out.innerHTML=html;
+
+    out.querySelectorAll('button[data-act]').forEach(function(b){
+      b.addEventListener('click',function(){
+        b.disabled=true;
+        api({method:'PUT', body:{id:Number(b.dataset.id), status:b.dataset.act}}).then(function(res){
+          if(res.status===401){ clearKey(); showGate('Session expired.'); return; }
+          if(!res.body || !res.body.ok){ b.disabled=false; alert('Could not update.'); return; }
+          load();
+        }).catch(function(){ b.disabled=false; alert('Network error.'); });
+      });
+    });
+  }
+
+  filterEl.addEventListener('change',load);
+  document.getElementById('refreshBtn').addEventListener('click',load);
+  logoutBtn.addEventListener('click',function(){ clearKey(); showGate(''); });
+  document.getElementById('signoutLink').addEventListener('click',function(e){ e.preventDefault(); clearKey(); showGate(''); });
+
+  if(key()) showConsole(); else showGate('');
+})();
+</script>
 </body>
 </html>
